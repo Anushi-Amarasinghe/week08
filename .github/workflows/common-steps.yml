@@ -1,0 +1,38 @@
+name: Common Setup Workflow
+
+on:
+  workflow_call:
+    inputs:
+      service:
+        description: 'Service name (backend/frontend)'
+        required: true
+        type: string
+      image_tag:
+        description: 'Image tag for Docker image'
+        required: true
+        type: string
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Login to Azure Container Registry
+        run: az acr login --name ${{ secrets.AZURE_CONTAINER_REGISTRY }}
+
+      - name: Build and Push Docker Image
+        run: |
+          echo "Building and pushing ${{ inputs.service }} image with tag ${{ inputs.image_tag }}"
+          docker build -t ${{ secrets.AZURE_CONTAINER_REGISTRY }}/${{ inputs.service }}:${{ inputs.image_tag }} ./${{ inputs.service }}
+          docker push ${{ secrets.AZURE_CONTAINER_REGISTRY }}/${{ inputs.service }}:${{ inputs.image_tag }}
+
+      - name: Azure Logout
+        if: always()
+        run: az logout
