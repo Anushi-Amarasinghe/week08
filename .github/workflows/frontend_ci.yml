@@ -6,12 +6,12 @@ on:
   push:
     branches: [main, development]
     paths:
-      - 'backend/**'
+      - 'frontend/**'
       - '.github/workflows/frontend_ci.yml'
   pull_request:
     branches: [main, development]
     paths:
-      - 'backend/**'
+      - 'frontend/**'
       - '.github/workflows/frontend_ci.yml'
   workflow_dispatch:
 
