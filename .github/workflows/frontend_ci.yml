@@ -1,29 +1,31 @@
-name: Frontend CI - Build & Test
+name: Frontend CI - Build & Push Static Files
 
 on:
-  pull_request:
+  push:
     branches:
       - main
       - development
 
 jobs:
-  build-and-test-frontend:
+  build-push-static-frontend:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v3
+      - name: Azure Login
+        uses: azure/login@v1
         with:
-          node-version: '18'
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-      - name: Install dependencies
-        run: |
-          cd frontend
-          npm install
+      - name: Login to Azure Container Registry (ACR)
+        run: az acr login --name ${{ secrets.AZURE_CONTAINER_REGISTRY }}
 
-      - name: Run frontend tests
+      - name: Build and push Docker image for frontend static files
         run: |
-          cd frontend
-          npm test
+          docker build -t ${{ secrets.AZURE_CONTAINER_REGISTRY }}/frontend:latest ./frontend/
+          docker push ${{ secrets.AZURE_CONTAINER_REGISTRY }}/frontend:latest
+
+      - name: Azure Logout
+        if: always()
+        run: az logout
