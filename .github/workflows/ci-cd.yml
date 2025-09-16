@@ -32,7 +32,7 @@ jobs:
       - name: Install (backend)
         run: |
           cd backend
-          npm ci
+          npm install
       - name: Run backend tests
         run: |
           cd backend
@@ -63,7 +63,7 @@ jobs:
       - name: Install (frontend)
         run: |
           cd frontend
-          npm ci
+          npm install
       - name: Build frontend
         run: |
           cd frontend
