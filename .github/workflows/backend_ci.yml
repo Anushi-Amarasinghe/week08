@@ -5,16 +5,25 @@ name: Backend CI - Test, Build and Push Images to ACR
 # Trigger the workflow on pushes to the 'main' branch
 # You can also add 'pull_request:' to run on PRs
 on:
-  # Manual trigger
+  push:
+    branches: [main, development]
+    paths:
+      - 'backend/**'
+      - '.github/workflows/backend_ci.yml'
+  pull_request:
+    branches: [main, development]
+    paths:
+      - 'backend/**'
+      - '.github/workflows/backend_ci.yml'
   workflow_dispatch:
 
   # Automatically on pushes to main branch
-  push:
-    branches:
-      - main
-    paths: # Only trigger if changes are in backend directories
-      - 'backend/**'
-      - '.github/workflows/backend_ci.yml' # Trigger if this workflow file changes
+  #push:
+   # branches:
+    #  - main
+    #paths: # Only trigger if changes are in backend directories
+     # - 'backend/**'
+      #- '.github/workflows/backend_ci.yml' # Trigger if this workflow file changes
 
 # Define global environment variables that can be used across jobs
 env:
@@ -110,37 +119,17 @@ jobs:
           pytest tests --maxfail=1 --disable-warnings -q
 
   # Job 2: Build and Push Docker Images (runs only if tests pass)
-  build_and_push_images:
-    runs-on: ubuntu-latest
+
+  build_and_push_product:
     needs: test_and_lint_backends
+    uses: ./.github/workflows/build_and_push_template.yml
+    with:
+      service_path: ./backend/product_service/
+      image_name: product_service
 
-    steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
-
-    # Azure login using a Service Principal secret
-    - name: Azure Login
-      uses: azure/login@v1
-      with:
-        creds: ${{ secrets.AZURE_CREDENTIALS }} # Needs to be set as a GitHub Secret (Service Principal JSON)
-
-    # Login to Azure Container Registry (ACR)
-    - name: Login to Azure Container Registry
-      run: az acr login --name ${{ env.ACR_LOGIN_SERVER }}
-
-    # Build and Push Docker image for Product Service
-    - name: Build and Push Product Service Image
-      run: |
-        docker build -t ${{ env.ACR_LOGIN_SERVER }}/product_service:latest ./backend/product_service/
-        docker push ${{ env.ACR_LOGIN_SERVER }}/product_service:latest
-
-    # Build and Push Docker image for Order Service
-    - name: Build and Push Order Service Image
-      run: |
-        docker build -t ${{ env.ACR_LOGIN_SERVER }}/order_service:latest ./backend/order_service/
-        docker push ${{ env.ACR_LOGIN_SERVER }}/order_service:latest
-
-    # Logout from Azure for security (runs even if image push fails)
-    - name: Logout from Azure
-      run: az logout
-      if: always()
+  build_and_push_order:
+    needs: test_and_lint_backends
+    uses: ./.github/workflows/build_and_push_template.yml
+    with:
+      service_path: ./backend/order_service/
+      image_name: order_service
