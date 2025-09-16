@@ -61,14 +61,14 @@ jobs:
 
   backend-build-push:
     needs: backend-test
-    uses: ./.github/workflows/build_and_push_template.yml
+    uses: ./.github/workflows/backend_ci.yml
     with:
       service_path: ./backend/product_service
       image_name: product_service
 
   backend-build-push-order:
     needs: backend-test
-    uses: ./.github/workflows/build_and_push_template.yml
+    uses: ./.github/workflows/backend_ci.yml
     with:
       service_path: ./backend/order_service
       image_name: order_service
@@ -92,7 +92,7 @@ jobs:
 
   frontend-build-push:
     needs: frontend-test-build
-    uses: ./.github/workflows/build_and_push_template.yml
+    uses: ./.github/workflows/frontend_ci.yml
     with:
       service_path: ./frontend
       image_name: frontend
